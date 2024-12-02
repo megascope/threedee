@@ -1,0 +1,1 @@
+https://www.printables.com/model/601479-inland-bambu-lab-ams-cardboard-spool-adapter-ring

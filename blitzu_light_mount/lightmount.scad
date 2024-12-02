@@ -87,7 +87,7 @@ down(wall) left(eps+mh/2) cube([eps2+dw,mh-2*wall, eps+md-wall], anchor=TOP+LEFT
 }
 
 // stopper for the mount
-color("darkgreen") left(mh/2-wall+gap2) down(wall) xrot(90) cyl(mh/2,0.5, rounding=0.3);
+color("darkgreen") left(mh/2-wall+gap*5) down(wall) xrot(90) cyl(mh/2,1, rounding=0.3);
 
 // mount base
 color("blue", 0.5)
