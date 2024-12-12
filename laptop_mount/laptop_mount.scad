@@ -10,7 +10,7 @@ include <../BOSL2/std.scad>
 
 $fn=50;
 
-base_depth = 150;
+base_depth = 130;
 base_width = 20;
 base_height = 2;
 
