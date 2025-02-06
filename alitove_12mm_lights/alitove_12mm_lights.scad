@@ -29,6 +29,8 @@ section_width = 25;
 section_height = 25;
 center_radius = 50;
 wall_depth = 2;
+end_depth = 1;
+end_height = 5; // bottom and lid
 
 
 /*
@@ -41,47 +43,85 @@ r=R/(cos(180/N​))
 
 */
 
+module block(radius, width, depth, height) {
+    hull() 
+        for (i = [0:1:SIDES]) {
+            rot(ANGLE*i, cp=[0,0,0])
+                back(radius)
+                    cuboid([width, depth, height], anchor=FRONT);
+    };
+}
 
-module walls(width, depth, height) {
-    // hull together all the walls then carve out the central polyhedron cylinder  
-    difference() { 
-        hull() 
-            for (i = [0:1:SIDES]) {
-                rot(ANGLE*i, cp=[0,0,0])
-                    back(center_radius)
-                        cuboid([width, depth, height], anchor=FRONT);
-        };
-        // center carveout
-        cyl(r=center_radius/(cos(180/SIDES)), h=height+2*EPSILON, $fn=10);
-        // add the tab cutouts at the bottom
-        for (i = [0:1:SIDES]) down(EPSILON+height/2) 
-            rot(ANGLE*i, cp=[0,0,0]) back(center_radius-EPSILON) 
-                cuboid([TOLERANCE+depth*2, TOLERANCE+depth/2, TOLERANCE+depth], anchor=FRONT+BOTTOM);    
-    }
-    // add the tab at the top for the next section
+module cutout(radius, height) {
+    cyl(r=radius/(cos(180/SIDES)), h=height+2*EPSILON, $fn=SIDES);
+}
+
+module tab_cutouts(radius, depth, height) {
+    for (i = [0:1:SIDES]) down(EPSILON+height/2) 
+            rot(ANGLE*i, cp=[0,0,0]) back(radius-EPSILON) 
+                cuboid([TOLERANCE+depth*2, TOLERANCE+depth/2, TOLERANCE+depth], anchor=FRONT+BOTTOM);      
+}
+
+module tab_flanges(radius, depth, height) {
     for (i = [0:1:SIDES]) {
         rot(ANGLE*i, cp=[0,0,0])
             up(height/2) 
-                back(center_radius) 
+                back(radius) 
                     cuboid([depth*2, depth/2, depth], anchor=FRONT+BOTTOM);
     }
-    
-    
 }
 
-module holes(depth, diameter) {
+module walls(radius, width, depth, height) {
+    // hull together all the walls then carve out the central polyhedron cylinder  
+    difference() { 
+        block(radius, width, depth, height);
+        // center carveout
+        cutout(radius, height);
+        // add the tab cutouts at the bottom
+        tab_cutouts(radius, depth, height);
+    }
+    // add the tab at the top for the next section
+    tab_flanges(radius, depth, height);
+
+}
+
+module holes(radius, depth, diameter) {
     for (i = [0:1:SIDES]) {
-        rot(ANGLE*i, cp=[0,0,0]) back(center_radius-depth/2) ycyl(depth*2, d=hole_diameter, anchor=FRONT);
+        rot(ANGLE*i, cp=[0,0,0]) back(radius-depth/2) ycyl(depth*2, d=hole_diameter, anchor=FRONT);
     }
 }
 
 
 // main wall with holes, to have the snap edges carved out of
-module wallthing()
+module wallsection()
 difference() {
-    walls(section_width,wall_depth,section_height);
-    holes(wall_depth, hole_diameter);
+    walls(center_radius, section_width,wall_depth, section_height);
+    holes(center_radius, wall_depth, hole_diameter);
 }
 
+module lidsection() {
+    difference() {
+        block(center_radius, section_width,wall_depth, end_height);
+        down(end_depth) cutout(center_radius, end_height);
+        tab_cutouts(center_radius, wall_depth, end_height);
+    }
+}
 
-wallthing();
+module bottomsection() {
+    difference() { 
+        block(center_radius, section_width, wall_depth, end_height);
+        up(end_depth) cutout(center_radius, end_height);
+        // create cable access hole
+        rot(ANGLE*0.5, cp=[0,0,0])
+            up(end_depth)
+                back(center_radius-wall_depth/2) 
+                    cuboid([section_width/3,wall_depth*3,end_height], anchor=FRONT, rounding=1);
+        
+    }
+    tab_flanges(center_radius, wall_depth, end_height);
+    
+}
+
+//wallsection();
+up(section_height*2) lidsection();
+//down(section_height*2) bottomsection();
