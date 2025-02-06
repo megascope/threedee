@@ -25,10 +25,10 @@ SIDES =10;
 ANGLE = 360/SIDES;
 
 hole_diameter = 12; // 12mm hole width
-section_width = 52;
-section_height = 50;
-center_radius = 80;
-wall_depth = 3;
+section_width = 25;
+section_height = 25;
+center_radius = 50;
+wall_depth = 2;
 
 
 /*
@@ -54,8 +54,8 @@ module walls(width, depth, height) {
         // center carveout
         cyl(r=center_radius/(cos(180/SIDES)), h=height+2*EPSILON, $fn=10);
         // add the tab cutouts at the bottom
-        for (i = [0:1:SIDES]) down(height/2) 
-            back(center_radius) 
+        for (i = [0:1:SIDES]) down(EPSILON+height/2) 
+            rot(ANGLE*i, cp=[0,0,0]) back(center_radius-EPSILON) 
                 cuboid([TOLERANCE+depth*2, TOLERANCE+depth/2, TOLERANCE+depth], anchor=FRONT+BOTTOM);    
     }
     // add the tab at the top for the next section
@@ -71,7 +71,7 @@ module walls(width, depth, height) {
 
 module holes(depth, diameter) {
     for (i = [0:1:SIDES]) {
-        rot(ANGLE*i, cp=[0,0,0]) back(center_radius-depth/2) ycyl(depth*2, hole_diameter, anchor=FRONT);
+        rot(ANGLE*i, cp=[0,0,0]) back(center_radius-depth/2) ycyl(depth*2, d=hole_diameter, anchor=FRONT);
     }
 }
 
